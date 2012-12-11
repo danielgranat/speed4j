@@ -95,14 +95,14 @@ public class StopWatch implements Serializable
     }
 
     /**
-     *  Stops the StopWatch and assigns the given tag to it.
+     *  Stops the StopWatch and assigns the given message to it.
      *
      *  @param tag The tag to assign.
      *  @return This StopWatch.
      */
-    public StopWatch stop( String tag )
+    public StopWatch stop( String message )
     {
-        m_tag = tag;
+        m_message = message;
         stop();
 
         return this;
