@@ -82,12 +82,11 @@ public class CollectedStatistics
     }
 
     /**
-     *  Returns the average of the StopWatches recorded.  NB: This call
-     *  causes all of the StopWatches to be traversed, which makes it fairly slow.
-     *
-     *  @return The average in milliseconds.
+     * Return the total StopWatches recorded. NB: This call
+     * causes all of the StopWatches to be traversed, which makes it fairly slow.
+     * @return
      */
-    public synchronized double getAverageMS()
+    public synchronized double getTotalMS()
     {
         double result = 0.0;
 
@@ -95,6 +94,19 @@ public class CollectedStatistics
         {
             result += d;
         }
+
+        return result;
+    }
+
+    /**
+     *  Returns the average of the StopWatches recorded.  NB: This call
+     *  causes all of the StopWatches to be traversed, which makes it fairly slow.
+     *
+     *  @return The average in milliseconds.
+     */
+    public synchronized double getAverageMS()
+    {
+        double result = getTotalMS();
 
         return result / m_times.size();
     }

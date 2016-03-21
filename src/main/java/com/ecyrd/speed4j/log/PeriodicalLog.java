@@ -75,6 +75,7 @@ public class PeriodicalLog extends Slf4jLog implements DynamicMBean
     private static final String ATTR_POSTFIX_STDDEV = "/stddev";
     private static final String ATTR_POSTFIX_AVG = "/avg";
     private static final String ATTR_POSTFIX_COUNT = "/count";
+    private static final String ATTR_POSTFIX_TOTAL = "/total";
 
     private static final int DEFAULT_MAX_QUEUE_SIZE = 300000;
     
@@ -453,7 +454,7 @@ public class PeriodicalLog extends Slf4jLog implements DynamicMBean
                 
                 printf("Statistics from %tc to %tc", new Date(lastRun), new Date(finalMoment));
 
-                printf("%-"+m_tagWidth+"s %8s %8s %8s %8s%s%8s","Tag","Avg(ms)","Min","Max","Std Dev",percString,"Count");
+                printf("%-"+m_tagWidth+"s %8s %8s %8s %8s%s%8s%8s","Tag","Avg(ms)","Min","Max","Std Dev",percString,"Count","Total");
 
                 for( Map.Entry<String,CollectedStatistics> e : m_stats.entrySet() )
                 {
@@ -464,7 +465,7 @@ public class PeriodicalLog extends Slf4jLog implements DynamicMBean
                     for( int i = 0; i < percentilenames.length; i++ )
                         sb.append( String.format(" %8.2f", cs.getPercentile( percentilenames[i] )) );
                     
-                    sb.append( String.format("%8d", cs.getInvocations()) );
+                    sb.append( String.format("%8d %8.2f", cs.getInvocations(), cs.getTotalMS()) );
                     m_log.info( sb.toString() );
                     
                     //
@@ -511,6 +512,7 @@ public class PeriodicalLog extends Slf4jLog implements DynamicMBean
                         js.percentiles[i] = cs.getPercentile( percentilenames[i] );
                     
                     js.stddev = cs.getStdDev();
+                    js.total = cs.getTotalMS();
                     m_jmxStatistics.put(n, js);
                 }
             }
@@ -664,6 +666,8 @@ public class PeriodicalLog extends Slf4jLog implements DynamicMBean
                 return cs.stddev;
             if( postfix.equals(ATTR_POSTFIX_COUNT) )
                 return cs.count;
+            if( postfix.equals(ATTR_POSTFIX_TOTAL) )
+                return cs.total;
 
             try
             {
@@ -767,6 +771,7 @@ public class PeriodicalLog extends Slf4jLog implements DynamicMBean
                     attributes[numItems*i+2] = new MBeanAttributeInfo( name+ATTR_POSTFIX_MIN,    "double", "Minimum value", true, false, false );
                     attributes[numItems*i+3] = new MBeanAttributeInfo( name+ATTR_POSTFIX_MAX,    "double", "Maximum value", true, false, false );
                     attributes[numItems*i+4] = new MBeanAttributeInfo( name+ATTR_POSTFIX_COUNT,  "int",    "Number of invocations", true, false, false );
+                    attributes[numItems*i+5] = new MBeanAttributeInfo( name+ATTR_POSTFIX_TOTAL,  "double", "Total value (in milliseconds)", true, false, false );
 
                     //
                     //  Generate the percentile titles as /<perc>
@@ -777,7 +782,7 @@ public class PeriodicalLog extends Slf4jLog implements DynamicMBean
                     {
                         String perTitle = saneDoubleToString( m_percentiles[p] );
 
-                        attributes[numItems*i+5+p] = new MBeanAttributeInfo( name+"/"+perTitle,  "double", perTitle+"th percentile", true, false, false );
+                        attributes[numItems*i+6+p] = new MBeanAttributeInfo( name+"/"+perTitle,  "double", perTitle+"th percentile", true, false, false );
                     }
                 }
 
@@ -843,6 +848,7 @@ public class PeriodicalLog extends Slf4jLog implements DynamicMBean
         public double max;
         public int    count;
         public double[] percentiles;
+        public double total;
     }
 
     /**
